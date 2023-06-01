@@ -8,8 +8,51 @@ import {
   StyleSheet,
 } from "react-native";
 
+import AsyncStorage from "@react-native-async-storage/async-storage";
+
 export default function HomePage({ navigation, route }) {
   const [todos, setTodos] = useState([]);
+
+  useEffect(() => {
+    getDataFromStorage(); // Hämta data vid komponentens montering
+  }, []);
+
+  useEffect(() => {
+    // Spara data när todos uppdateras
+    saveDataToStorage(todos);
+  }, [todos]);
+
+  const saveDataToStorage = async (data) => {
+    try {
+      const jsonValue = JSON.stringify(data);
+      await AsyncStorage.setItem("todos", jsonValue);
+      console.log("Data sparad i AsyncStorage.");
+    } catch (error) {
+      console.log(
+        "Ett fel uppstod vid sparandet av data i AsyncStorage:",
+        error
+      );
+    }
+  };
+
+  const getDataFromStorage = async () => {
+    try {
+      const jsonValue = await AsyncStorage.getItem("todos");
+      if (jsonValue !== null) {
+        const data = JSON.parse(jsonValue);
+        setTodos(data);
+        console.log("Data hämtad från AsyncStorage.");
+      } else {
+        console.log("Ingen data hittades i AsyncStorage.");
+      }
+    } catch (error) {
+      console.log(
+        "Ett fel uppstod vid hämtning av data från AsyncStorage:",
+        error
+      );
+    }
+  };
+
   useEffect(() => {
     if (route.params?.todo) {
       setTodos((prev) => [...prev, route.params?.todo]);
